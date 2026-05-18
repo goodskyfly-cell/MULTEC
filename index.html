@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>互動動畫教學：二位數乘以一位數直式乘法</title>
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --secondary: #ff9f43;
+            --success: #1dd1a1;
+            --danger: #ff6b6b;
+            --text: #2d3436;
+            --bg: #f0f3f8;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, "Microsoft JhengHei";
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            padding: 35px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            font-size: 28px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .main-layout {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .visual-panel {
+            flex: 1;
+            min-width: 320px;
+            background: #fdfefe;
+            border: 2px solid #eef2f5;
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            min-height: 380px;
+        }
+
+        .control-panel {
+            flex: 1;
+            min-width: 320px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* 數學直式動態樣式 */
+        .math-board {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 48px;
+            font-weight: bold;
+            line-height: 1.2;
+            text-align: right;
+            position: relative;
+            padding: 20px 40px;
+            letter-spacing: 15px;
+        }
+
+        .grid-line {
+            border-bottom: 4px solid var(--text);
+            margin: 10px 0;
+            width: 180px;
+        }
+
+        .digit {
+            display: inline-block;
+            transition: all 0.4s ease;
+            position: relative;
+        }
+
+        /* 輔助定位與顏色 */
+        .tens-place { color: #2980b9; }
+        .ones-place { color: #27ae60; }
+        .multiplier-color { color: #8e44ad; }
+        
+        .carry-box {
+            font-size: 24px;
+            color: var(--danger);
+            position: absolute;
+            top: -25px;
+            right: 75px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s ease;
+        }
+
+        .carry-box.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 動態箭頭與指示框 */
+        .active-target {
+            background-color: rgba(241, 196, 15, 0.25);
+            border-radius: 8px;
+            transform: scale(1.1);
+        }
+
+        /* 步驟說明卡片 */
+        .step-card {
+            background: #f8f9fa;
+            border-left: 6px solid var(--primary);
+            padding: 20px;
+            border-radius: 0 12px 12px 0;
+            margin-bottom: 25px;
+            min-height: 120px;
+            transition: all 0.3s;
+        }
+
+        .step-title {
+            font-weight: bold;
+            font-size: 18px;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .step-desc {
+            font-size: 16px;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        /* 按鈕設計 */
+        .btn-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: #357abd;
+        }
+
+        .btn-secondary {
+            background: #e4e7eb;
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background: #d4d7db;
+        }
+
+        /* 位值概念圖解 */
+        .place-value-legend {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .legend-blue { width: 12px; height: 12px; background: #2980b9; border-radius: 3px; }
+        .legend-green { width: 12px; height: 12px; background: #27ae60; border-radius: 3px; }
+
+        /* 常見錯誤與觀念卡片 */
+        .tips-section {
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .tip-box {
+            background: #fff;
+            border: 1px solid #e1e8ed;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .tip-box.danger { border-top: 4px solid var(--danger); }
+        .tip-box.success { border-top: 4px solid var(--success); }
+        
+        .tip-box h3 {
+            margin-top: 0;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🔢 三年級乘法基本功：二位數 × 一位數</h1>
+    
+    <div class="place-value-legend">
+        <div class="legend-item"><div class="legend-blue"></div>藍色：十位</div>
+        <div class="legend-item"><div class="legend-green"></div>綠色：個位</div>
+    </div>
+
+    <div class="main-layout">
+        <div class="visual-panel">
+            <div class="math-board">
+                <div id="carry1" class="carry-box">2</div>
+                
+                <span id="num-2" class="digit tens-place">2</span><span id="num-7" class="digit ones-place">7</span><br>
+                
+                <span style="color:#ccc; font-size: 32px; letter-spacing: 0;">×</span>&nbsp;&nbsp;<span id="num-4" class="digit multiplier-color">4</span><br>
+                
+                <div class="grid-line"></div>
+                
+                <span id="ans-1" class="digit" style="opacity:0;">1</span><span id="ans-0" class="digit" style="opacity:0;">0</span><span id="ans-8" class="digit ones-place" style="opacity:0;">8</span>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <div class="step-card" id="step-card">
+                <div class="step-title" id="step-title">準備開始</div>
+                <div class="step-desc" id="step-desc">點擊下方「下一步」按鈕，一起來看看 27 × 4 的直式計算秘密流程吧！</div>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="resetAnimation()">🔄 重頭開始</button>
+                <button class="btn btn-primary" id="next-btn" onclick="nextStep()">➡️ 下一步</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="tips-section">
+        <div class="tip-box danger">
+            <h3 style="color: var(--danger);">⚠️ 這裡最容易算錯！</h3>
+            <p style="font-size: 14px; margin: 0; color: #666;">
+                <strong>忘記加進位：</strong> 個位乘完進位後，十位乘出來的積（2×4=8）一定要記得加上進位的 2 喔！
+            </p>
+        </div>
+        <div class="tip-box success">
+            <h3 style="color: var(--success);">💡 數學小字典</h3>
+            <p style="font-size: 14px; margin: 0; color: #666;">
+                <strong>被乘數（27）：</strong> 被重複加上的數字。<br>
+                <strong>乘數（4）：</strong> 連續加了幾次。
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentStep = 0;
+    
+    const steps = [
+        {
+            title: "第一步：對齊位數",
+            desc: "把被乘數 27 寫在上面，乘數 4 寫在下面。看見了嗎？<span class='ones-place'>個位數（7 和 4）</span>外框亮起了，它們一定要直直的對齊喔！",
+            action: () => {
+                highlightDigit(['num-7', 'num-4'], true);
+            }
+        },
+        {
+            title: "第二步：個位乘個位",
+            desc: "用下面的 <span class='multiplier-color'>4</span> 去乘以個位的 <span class='ones-place'>7</span>。<br>口訣：<b>七四 二十八</b>",
+            action: () => {
+                highlightDigit(['num-2'], false);
+                highlightDigit(['num-7', 'num-4'], true);
+            }
+        },
+        {
+            title: "第三步：處理個位進位",
+            desc: "因為 28 超過了 10，所以要把個位的 <span class='ones-place'>8</span> 寫在最下面，並把十位的 <span class='highlight' style='color:var(--danger)'>2 進位</span> 到十位數的頭上（紅色小數字）。",
+            action: () => {
+                document.getElementById('ans-8').style.opacity = '1';
+                document.getElementById('carry1').classList.add('active');
+                highlightDigit(['num-7'], false);
+            }
+        },
+        {
+            title: "第四步：個位乘十位",
+            desc: "接著，一樣用下面的 <span class='multiplier-color'>4</span> 去乘以十位的 <span class='tens-place'>2</span>。<br>口訣：<b>二四 得八</b>",
+            action: () => {
+                highlightDigit(['num-4', 'num-2'], true);
+            }
+        },
+        {
+            title: "第五步：加上進位，寫下十位與百位",
+            desc: "剛剛乘出來的 8，必須加上頭頂紅色進位的 <span style='color:var(--danger)'>2</span>。<br>算式：<b>8 + 2 = 10</b>。最後在十位填上 0，百位填上 1。",
+            action: () => {
+                highlightDigit(['num-4', 'num-2'], false);
+                document.getElementById('ans-0').style.opacity = '1';
+                document.getElementById('ans-1').style.opacity = '1';
+            }
+        },
+        {
+            title: "🎉 大功告成！",
+            desc: "太棒了！我們順利算出來了，27 × 4 的正確答案就是 <b>108</b>。換你拿白板筆試試看別的題目吧！",
+            action: () => {
+                highlightDigit(['ans-1', 'ans-0', 'ans-8'], true);
+            }
+        }
+    ];
+
+    function highlightDigit(ids, add) {
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                if (add) el.classList.add('active-target');
+                else el.classList.remove('active-target');
+            }
+        });
+    }
+
+    function clearAllHighlights() {
+        const digits = document.querySelectorAll('.digit');
+        digits.forEach(d => d.classList.remove('active-target'));
+    }
+
+    function nextStep() {
+        if (currentStep < steps.length) {
+            steps[currentStep].action();
+            document.getElementById('step-title').innerHTML = steps[currentStep].title;
+            document.getElementById('step-desc').innerHTML = steps[currentStep].desc;
+            currentStep++;
+            
+            if (currentStep === steps.length) {
+                document.getElementById('next-btn').innerText = "🏁 學習完成";
+                document.getElementById('next-btn').disabled = true;
+            }
+        }
+    }
+
+    function resetAnimation() {
+        currentStep = 0;
+        clearAllHighlights();
+        document.getElementById('ans-1').style.opacity = '0';
+        document.getElementById('ans-0').style.opacity = '0';
+        document.getElementById('ans-8').style.opacity = '0';
+        document.getElementById('carry1').classList.remove('active');
+        
+        document.getElementById('step-title').innerText = "準備開始";
+        document.getElementById('step-desc').innerHTML = "點擊下方「下一步」按鈕，一起來看看 27 × 4 的直式計算秘密流程吧！";
+        
+        document.getElementById('next-btn').innerText = "➡️ 下一步";
+        document.getElementById('next-btn').disabled = false;
+    }
+</script>
+
+</body>
+</html>
